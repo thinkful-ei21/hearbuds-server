@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thinkful-ei21/hearbuds-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thinkful-ei21/hearbuds-server/issues"
+  },
+  "homepage": "https://github.com/thinkful-ei21/hearbuds-server#readme",
+  "dependencies": {
+    "apollo-datasource-rest": "^0.1.4",
+    "apollo-server": "^2.0.5",
+    "core-js": "^2.5.7",
+    "graphql": "^0.13.2",
+    "mongoose": "^5.2.9",
+    "nodemon": "^1.18.3"
+  }
+}
