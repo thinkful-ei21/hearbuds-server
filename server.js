@@ -1,10 +1,16 @@
 'use strict';
 
-var express = require('express');
-var graphqlHTTP = require('express-graphql');
-var { buildSchema } = require('graphql');
+require('dotenv').config();
+const express = require('express');
+const graphqlHTTP = require('express-graphql');
+const { buildSchema } = require('graphql');
+const passport = require('passport');
+const morgan = require('morgan');
 
-const { dbConnect } = require('db');
+const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
+const {router: userRouter} = require('./users/router');
+
+const { dbConnect } = require('./db');
 
 //importing models
 
@@ -39,8 +45,25 @@ const resolvers = {
 
 var app = express();
 
-// app.use('/auth')
+app.use(morgan('common'));
 
+passport.use(localStrategy);
+passport.use(jwtStrategy);
+
+app.use('/users/', userRouter);
+app.use('/auth/', authRouter);
+
+const jwtAuth = passport.authenticate('jwt', { session: false });
+
+
+//a test protected endpoint
+app.get('/protected', jwtAuth, (req, res) => {
+  return res.json({
+	  data: 'rosebud'
+  });
+});
+
+//insert jwtAuth middleware once we're further along
 app.use('/graphql', graphqlHTTP({
   schema: schema,
   rootValue: resolvers,
