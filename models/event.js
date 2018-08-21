@@ -6,6 +6,8 @@ const EventSchema = mongoose.Schema({
 	attending: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 	considering: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 	comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Commnet'}]
+}, {
+	timestamps: true
 });
 
 EventSchema.virtual('id').get(function() {

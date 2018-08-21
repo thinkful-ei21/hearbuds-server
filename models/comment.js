@@ -5,6 +5,8 @@ const CommentSchema = mongoose.Schema({
 	body: { type: String, required: true },
 	user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 	replies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
+}, {
+	timestamps: true
 });
 
 CommentSchema.virtual('id').get(function() {
