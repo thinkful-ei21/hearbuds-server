@@ -7,7 +7,7 @@ const { buildSchema } = require('graphql');
 const passport = require('passport');
 const morgan = require('morgan');
 const axios = require('axios');
-const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY } = require('./config')
+const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY, MAPQUEST_BASE_URL, MAPQUEST_API_KEY} = require('./config');
 
 const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
 const {router: userRouter} = require('./users/router');
@@ -92,7 +92,8 @@ type Venue {
 
 type Query {
 	getUser(id: ID!): User
-	getEvents: [Event]
+  getEvents: [Event]
+  getByZip(zip: Int): [Event]
 }
 `);
 
@@ -104,15 +105,35 @@ const getUser = (args) => {
 };
 
 const getEvents = (args) => {
-	return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=10&apikey=${TICKETMASTER_API_KEY}`)
-				.then(response => response.data._embedded.events)
-}
+  return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=10&apikey=${TICKETMASTER_API_KEY}`)
+    .then(response => response.data._embedded.events);
+};
 
+const getByZip = (args) => {
+  return axios.get(
+    `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${args.zip}&thumbMaps=false`
+  )
+    .then(res => {
+      // console.log(res.data.results[0].locations[0].latLng);
+      return res.data.results[0].locations[0].latLng;
+    })
+    .then(loc =>{
+      return axios.get(`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}&latlong=${loc.lat},${loc.lng}&radius=50&countryCode=US`)
+        .then(response => response.data._embedded.events);
+    
+    })
+    .catch(err=>{
+      console.log(err);
+      return new Error('location service error');
+    });
+ 
+};
 
 // The root provides the top-level API endpoints
 const resolvers = {
   getUser: (args) => getUser(args),
-  getEvents: (args) => getEvents(args)
+  getEvents: (args) => getEvents(args),
+  getByZip: (args) => getByZip(args)
 };
 
 var app = express();
