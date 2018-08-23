@@ -7,6 +7,8 @@ const { buildSchema } = require('graphql');
 const passport = require('passport');
 const morgan = require('morgan');
 const axios = require('axios');
+const cors = require('cors');
+
 const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY, MAPQUEST_BASE_URL, MAPQUEST_API_KEY} = require('./config');
 
 const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
@@ -91,9 +93,10 @@ type Venue {
 }
 
 type Query {
-	getUser(id: ID!): User
+  getUser(id: ID!): User
   getEvents: [Event]
   getByZip(zip: Int): [Event]
+  getById(id: String): Event
 }
 `);
 
@@ -103,6 +106,11 @@ const getUser = (args) => {
   console.log(args);
   return 'user';
 };
+
+const getById = (args) => {
+  return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=1&id=${args.id}&apikey=${TICKETMASTER_API_KEY}`)
+      .then(response => response.data._embedded.events[0])
+}
 
 const getEvents = (args) => {
   return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=10&apikey=${TICKETMASTER_API_KEY}`)
@@ -133,11 +141,12 @@ const getByZip = (args) => {
 const resolvers = {
   getUser: (args) => getUser(args),
   getEvents: (args) => getEvents(args),
-  getByZip: (args) => getByZip(args)
+  getByZip: (args) => getByZip(args),
+  getById: (args) => getById(args)
 };
 
 var app = express();
-
+app.use(cors());
 app.use(morgan('common'));
 
 passport.use(localStrategy);
