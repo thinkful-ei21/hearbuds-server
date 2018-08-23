@@ -100,8 +100,6 @@ type Query {
 }
 `);
 
-
-
 const getUser = (args) => {
   console.log(args);
   return 'user';
