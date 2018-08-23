@@ -37,7 +37,7 @@ type Event {
 	promoter: Promoter
 	promoters: [Promoter]
 	seatmap: Seatmap
-	_embedded: Venue
+	_embedded: Venues
 	dates: Date
 }
 
@@ -83,13 +83,13 @@ type Promoter {
 	name: String
 	description: String
 }
-
+type Venues {
+  arena: [Venue]
+}
 type Venue {
 	name: String
 	type: String
 	id: String
-	postalCode: String
-	timezone: String
 }
 
 type Query {
