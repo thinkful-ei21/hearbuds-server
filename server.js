@@ -8,6 +8,7 @@ const passport = require('passport');
 const morgan = require('morgan');
 const axios = require('axios');
 const cors = require('cors');
+const Event = require('./models/event');
 
 const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY, MAPQUEST_BASE_URL, MAPQUEST_API_KEY} = require('./config');
 
@@ -84,7 +85,7 @@ type Promoter {
 	description: String
 }
 type Venues {
-  arena: [Venue]
+  venue: Venue
 }
 type Venue {
 	name: String
@@ -105,7 +106,9 @@ const getUser = (args) => {
   return 'user';
 };
 
-const getById = (args) => {
+const getById = async (args) => {
+	let event = await Event.findOneOrCreate({eventId: args.id}, {eventId: args.id});
+
   return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=1&id=${args.id}&apikey=${TICKETMASTER_API_KEY}`)
       .then(response => response.data._embedded.events[0])
 }
