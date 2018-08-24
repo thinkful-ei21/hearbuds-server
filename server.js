@@ -121,12 +121,12 @@ const parseTicketmasterResponse = (response) =>{
       console.log(error);
       link = null;
     }
-    // console.log(e._embedded.venues[0].name)
+    console.log(e.dates)
     // console.log(e._embedded.attractions[0].externalLinks.homepage)
     events.push({
       name: e.name,
       id: e.id,
-      date:e.dates.start.dateTime,
+      dates:e.dates,
       venue:e._embedded.venues[0],
       largeImage: e.images[7].url,
       smallImage: e.images[1].url,
