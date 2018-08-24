@@ -20,6 +20,8 @@ const { dbConnect } = require('./db');
 
 //typedefs
 
+
+
 const schema = buildSchema(`
 type User {
 	id: ID!
@@ -30,15 +32,19 @@ type User {
 type Event {
 	name: String
 	type: String
-	id: String
-	url: String
-	images: [Image]
+  id: String
+  venue: Venue
+  largeImage: String
+  smallImage: String
+  ticketLink: String
+  bandLink: String
+  distance: Float
 	classifications: [Classification]
 	promoter: Promoter
 	promoters: [Promoter]
 	seatmap: Seatmap
 	_embedded: Venue
-	dates: Date
+	date: Date
 }
 
 type Image {
@@ -89,8 +95,9 @@ type Venue {
 	type: String
 	id: String
 	postalCode: String
-	timezone: String
+  timezone: String
 }
+
 
 type Query {
   getUser(id: ID!): User
@@ -100,7 +107,40 @@ type Query {
 }
 `);
 
+// const address = ()=>{
+//   return '1234'
+// }
 
+const parseTicketmasterResponse = (response) =>{
+  let arr = response.data._embedded.events;
+  let events =[];
+  
+  for(let e of arr){
+    let link;
+    try {
+      link = e._embedded.attractions[0].externalLinks.homepage[0].url;
+    } catch (error) {
+      console.log(error);
+      link = null;
+    }
+    // console.log(e._embedded.venues[0].name)
+    // console.log(e._embedded.attractions[0].externalLinks.homepage)
+    events.push({
+      name: e.name,
+      id: e.id,
+      date:e.dates.start.dateTime,
+      venue:e._embedded.venues[0],
+      largeImage: e.images[7].url,
+      smallImage: e.images[1].url,
+      ticketLink: e.url,
+      bandLink:link,
+      distance: e.distance
+    });
+  }
+
+  return events;
+  
+};
 
 const getUser = (args) => {
   console.log(args);
@@ -109,12 +149,13 @@ const getUser = (args) => {
 
 const getById = (args) => {
   return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=1&id=${args.id}&apikey=${TICKETMASTER_API_KEY}`)
-      .then(response => response.data._embedded.events[0])
-}
+    .then(response =>parseTicketmasterResponse(response)[0] );
+
+};
 
 const getEvents = (args) => {
   return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=10&apikey=${TICKETMASTER_API_KEY}`)
-    .then(response => response.data._embedded.events);
+    .then(response => parseTicketmasterResponse(response) );
 };
 
 const getByZip = (args) => {
@@ -127,12 +168,18 @@ const getByZip = (args) => {
     })
     .then(loc =>{
       return axios.get(`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}&latlong=${loc.lat},${loc.lng}&radius=50&countryCode=US`)
-        .then(response => response.data._embedded.events);
+        .then(response => {
+          return parseTicketmasterResponse(response);
+        });
+      //response includes next/prev links for pagination
+      //parsing of ticketmaster response obj will happen here
+      // console.log(response.data._embedded.events[0].images[7]);
+      // return response.data._embedded.events;});
     
     })
     .catch(err=>{
       console.log(err);
-      return new Error('location service error');
+      return new Error('API response error');
     });
  
 };
