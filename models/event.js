@@ -23,6 +23,12 @@ EventSchema.set('toObject', {
 	virtuals: true
 });
 
+//adding a static method which looks for an event. if one is found it returns it otherwise it will just create a new one
+EventSchema.static('findOneOrCreate', async function findOneOrCreate(condition, doc) {
+	const data = await this.findOne(condition);
+	return data || this.create(doc);
+});
+
 const Event = mongoose.model('Event', EventSchema);
 
 module.exports = Event;
