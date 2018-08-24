@@ -17,7 +17,7 @@ router.post('/', jsonParser, (req, res) => {
 
   console.log('post user');
   
-  const requiredFields = ['username', 'password', 'zip'];
+  const requiredFields = ['username', 'password', 'zip', 'email'];
   const missingField = requiredFields.find(field => !(field in req.body));
 
   if (missingField) {
@@ -29,7 +29,7 @@ router.post('/', jsonParser, (req, res) => {
     });
   }
 
-  const stringFields = ['username', 'password', 'firstName', 'lastName', 'zip'];
+  const stringFields = ['username', 'password', 'firstName', 'lastName', 'zip', 'email'];
   const nonStringField = stringFields.find(
     field => field in req.body && typeof req.body[field] !== 'string'
   );
@@ -43,7 +43,7 @@ router.post('/', jsonParser, (req, res) => {
     });
   }
 
-  const explicityTrimmedFields = ['username', 'password', 'zip'];
+  const explicityTrimmedFields = ['username', 'password', 'zip', 'email'];
   const nonTrimmedField = explicityTrimmedFields.find(
     field => req.body[field].trim() !== req.body[field]
   );
@@ -96,7 +96,7 @@ router.post('/', jsonParser, (req, res) => {
     });
   }
 
-  let {username, password, firstName = '', lastName = '', zip} = req.body;
+  let {username, password, firstName = '', lastName = '', zip, email} = req.body;
   // Username and password come in pre-trimmed, otherwise we throw an error
   // before this
   firstName = firstName.trim();
@@ -123,7 +123,8 @@ router.post('/', jsonParser, (req, res) => {
         password: hash,
         firstName,
         lastName,
-        zip
+        zip, 
+        email
       });
     })
     .then(user => {
