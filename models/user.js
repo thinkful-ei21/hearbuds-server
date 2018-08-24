@@ -11,7 +11,8 @@ mongoose.Promise = global.Promise;
 const UserSchema = mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: false, unique: true },
-  password: { type: String, required: true }
+  password: { type: String, required: true },
+  zip: { type: String, required: true }
 });
 
 // create an 'id' field from our standard '_id'

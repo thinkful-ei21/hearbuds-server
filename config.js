@@ -1,6 +1,6 @@
 'use strict';
 
-exports.DATABASE_URL = process.env.DATABASE_URL || 'mongodb://localhost/headbuds';
+exports.DATABASE_URL = process.env.DATABASE_URL || 'mongodb://localhost/hearbuds';
 exports.JWT_SECRET = process.env.JWT_SECRET;
 exports.JWT_EXPIRY = process.env.JWT_EXPIRY || '15m';
 exports.TICKETMASTER_BASE_URL = 'https://app.ticketmaster.com/discovery/v2/';
