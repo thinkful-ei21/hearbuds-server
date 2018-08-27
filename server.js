@@ -9,6 +9,7 @@ const morgan = require('morgan');
 const axios = require('axios');
 const cors = require('cors');
 const Event = require('./models/event');
+const Comment = require('./models/comment');
 
 const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY, MAPQUEST_BASE_URL, MAPQUEST_API_KEY} = require('./config');
 
@@ -106,6 +107,9 @@ type Venue {
 	id: String
 }
 
+type Mutation {
+	setComment(message: String, body: String, eventId: String, userId: String): String
+}
 
 type Query {
   getUser(id: ID!): User
@@ -224,12 +228,24 @@ const getByZip = (args) => {
  
 };
 
+const setComment = (args) => {
+	return Comment.create({user: args.userId, body: args.body})
+					.then(comment => {
+						return Event.findOneAndUpdate(
+							{ _id: args.eventId }, 
+							{ $push: {comments: comment._id }}
+						)
+					})
+					.then(event => console.log('you created a comment'))
+}
+
 // The root provides the top-level API endpoints
 const resolvers = {
   getUser: (args) => getUser(args),
   getEvents: (args) => getEvents(args),
   getByZip: (args) => getByZip(args),
-  getById: (args) => getById(args)
+  getById: (args) => getById(args),
+  setComment: (args) => setComment(args)
 };
 
 var app = express();
