@@ -9,7 +9,9 @@ const morgan = require('morgan');
 const axios = require('axios');
 const cors = require('cors');
 const Event = require('./models/event');
+const User = require('./models/user');
 const Comment = require('./models/comment');
+const jwtDecode = require('jwt-decode');
 
 const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY, MAPQUEST_BASE_URL, MAPQUEST_API_KEY} = require('./config');
 
@@ -108,7 +110,7 @@ type Venue {
 }
 
 type Mutation {
-	setComment(message: String, body: String, eventId: String, userId: String): String
+	setComment(body: String, userId: String, eventId: String): String
 }
 
 type Query {
@@ -228,15 +230,20 @@ const getByZip = (args) => {
  
 };
 
-const setComment = (args) => {
-	return Comment.create({user: args.userId, body: args.body})
+const setComment = async (args) => {
+  let decodedToken = jwtDecode(args.userId.slice(7));
+  let username = decodedToken.user.username;
+
+  let user = await User.findOne({username: username});
+  console.log(user);
+	return Comment.create({user: user._id, body: args.body})
 					.then(comment => {
 						return Event.findOneAndUpdate(
-							{ _id: args.eventId }, 
+							{ eventId: args.eventId }, 
 							{ $push: {comments: comment._id }}
-						)
+						).populate('comments')
 					})
-					.then(event => console.log('you created a comment'))
+					.then(event => event)
 }
 
 // The root provides the top-level API endpoints
@@ -290,3 +297,5 @@ console.log('Running a GraphQL API server at localhost:4000/graphql');
 // 	//connect the database
 // 	console.log(`current listening on ${url}`);
 // });
+
+
