@@ -17,6 +17,7 @@ const {router: userRouter} = require('./users/router');
 
 const { dbConnect } = require('./db');
 
+
 //importing models
 
 //typedefs
@@ -45,7 +46,13 @@ type Event {
 	promoters: [Promoter]
 	seatmap: Seatmap
 	_embedded: Venues
-	dates: Date
+  dates: Date
+  comments: [Comment]
+}
+
+type Comment{
+  body: String
+  user: User
 }
 
 type Image {
@@ -111,9 +118,7 @@ type Query {
 
 const parseTicketmasterResponse = (response) =>{
   let arr = response.data._embedded.events;
-  let events =[];
-  
-  for(let e of arr){
+  let events =  arr.map(e =>{
     let link;
     try {
       link = e._embedded.attractions[0].externalLinks.homepage[0].url;
@@ -121,20 +126,55 @@ const parseTicketmasterResponse = (response) =>{
       console.log(error);
       link = null;
     }
-    console.log(e.dates)
-    // console.log(e._embedded.attractions[0].externalLinks.homepage)
-    events.push({
-      name: e.name,
-      id: e.id,
-      dates:e.dates,
-      venue:e._embedded.venues[0],
-      largeImage: e.images[7].url,
-      smallImage: e.images[1].url,
-      ticketLink: e.url,
-      bandLink:link,
-      distance: e.distance
-    });
-  }
+
+    return Event.findOne({eventId:e.id})
+      .then(event => {
+        let comments = event? event.comments : null
+
+        return {
+          name: e.name,
+          id: e.id,
+          dates:e.dates,
+          venue:e._embedded.venues[0],
+          largeImage: e.images[7].url,
+          smallImage: e.images[1].url,
+          ticketLink: e.url,
+          bandLink:link,
+          distance: e.distance,
+          comments: comments
+        }
+      })
+  })
+
+  // for(let e of arr){
+  //   let link;
+  //   try {
+  //     link = e._embedded.attractions[0].externalLinks.homepage[0].url;
+  //   } catch (error) {
+  //     console.log(error);
+  //     link = null;
+  //   }
+  //   // console.log(e.dates)
+  //   // console.log(e._embedded.attractions[0].externalLinks.homepage)
+
+  //   Event.findOne({eventId:e.id})
+  //     .then(event => {
+  //       return events.push({
+  //         name: e.name,
+  //         id: e.id,
+  //         dates:e.dates,
+  //         venue:e._embedded.venues[0],
+  //         largeImage: e.images[7].url,
+  //         smallImage: e.images[1].url,
+  //         ticketLink: e.url,
+  //         bandLink:link,
+  //         distance: e.distance,
+  //         comments: event.comments
+  //       });
+
+  //     })
+
+  // }
 
   return events;
   
