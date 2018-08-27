@@ -8,9 +8,10 @@ const passport = require('passport');
 const morgan = require('morgan');
 const axios = require('axios');
 const cors = require('cors');
-const Event = require('./models/event');
-const {User} = require('./models/user');
 
+const Event = require('./models/event');
+const User = require('./models/user');
+const Comment = require('./models/comment');
 const jwtDecode = require('jwt-decode');
 
 
@@ -110,6 +111,9 @@ type Venue {
 	id: String
 }
 
+type Mutation {
+	setComment(body: String, userId: String, eventId: String): String
+}
 
 type Query {
   getUser(id: ID!): User
@@ -210,12 +214,30 @@ const getByZip = (args, request) => {
  
 };
 
+const setComment = async (args, request) => {
+  const decodedToken = jwtDecode(request.headers.authorization.slice(7))
+  let username = decodedToken.user.username;
+
+  let user = await User.findOne({username: username});
+  console.log(user);
+	return Comment.create({user: user._id, body: args.body})
+					.then(comment => {
+						return Event.findOneAndUpdate(
+							{ eventId: args.eventId }, 
+							{ $push: {comments: comment._id }}
+						).populate('comments')
+					})
+					.then(event => event)
+}
+
 // The root provides the top-level API endpoints
 const resolvers = {
   getUser: (args) => getUser(args),
   getEvents: (args) => getEvents(args),
   getByZip: (args, request) => getByZip(args, request),
-  getById: (args) => getById(args)
+  getById: (args) => getById(args),
+  setComment: (args, request) => setComment(args, request)
+
 };
 
 var app = express();
@@ -260,3 +282,5 @@ console.log('Running a GraphQL API server at localhost:4000/graphql');
 // 	//connect the database
 // 	console.log(`current listening on ${url}`);
 // });
+
+
