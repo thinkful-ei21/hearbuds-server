@@ -9,6 +9,10 @@ const morgan = require('morgan');
 const axios = require('axios');
 const cors = require('cors');
 const Event = require('./models/event');
+const {User} = require('./models/user');
+
+const jwtDecode = require('jwt-decode');
+
 
 const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY, MAPQUEST_BASE_URL, MAPQUEST_API_KEY} = require('./config');
 
@@ -118,10 +122,9 @@ const parseTicketmasterResponse = (response) =>{
     try {
       link = e._embedded.attractions[0].externalLinks.homepage[0].url;
     } catch (error) {
-      console.log(error);
+      console.log('homepage not found');
       link = null;
     }
-    console.log(e.dates)
     // console.log(e._embedded.attractions[0].externalLinks.homepage)
     events.push({
       name: e.name,
@@ -158,10 +161,22 @@ const getEvents = (args) => {
     .then(response => parseTicketmasterResponse(response) );
 };
 
-const getByZip = (args) => {
-  return axios.get(
-    `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${args.zip}&thumbMaps=false`
-  )
+const getByZip = (args, request) => {
+  // console.log('passed: ', args, request.headers)
+  
+  const decodedToken = jwtDecode(request.headers.authorization.slice(7))
+  
+  return User.findOne({username:decodedToken.user.username})
+    .then( user => {
+      console.log('user zip is:', user.zip)
+      return   axios.get(
+        `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${user.zip}&thumbMaps=false`
+      )
+    })
+
+  // return axios.get(
+  //   `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${args.zip}&thumbMaps=false`
+  // )
     .then(res => {
       // console.log(res.data.results[0].locations[0].latLng);
       return res.data.results[0].locations[0].latLng;
@@ -188,7 +203,7 @@ const getByZip = (args) => {
 const resolvers = {
   getUser: (args) => getUser(args),
   getEvents: (args) => getEvents(args),
-  getByZip: (args) => getByZip(args),
+  getByZip: (args, request) => getByZip(args, request),
   getById: (args) => getById(args)
 };
 
@@ -213,7 +228,7 @@ app.get('/protected', jwtAuth, (req, res) => {
 });
 
 //insert jwtAuth middleware once we're further along
-app.use('/graphql', graphqlHTTP({
+app.use('/graphql', jwtAuth, graphqlHTTP({
   schema: schema,
   rootValue: resolvers,
   graphiql: true,
