@@ -8,7 +8,12 @@ const passport = require('passport');
 const morgan = require('morgan');
 const axios = require('axios');
 const cors = require('cors');
+
 const Event = require('./models/event');
+const User = require('./models/user');
+const Comment = require('./models/comment');
+const jwtDecode = require('jwt-decode');
+
 
 const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY, MAPQUEST_BASE_URL, MAPQUEST_API_KEY} = require('./config');
 
@@ -106,6 +111,9 @@ type Venue {
 	id: String
 }
 
+type Mutation {
+	setComment(body: String, userId: String, eventId: String): String
+}
 
 type Query {
   getUser(id: ID!): User
@@ -123,7 +131,7 @@ const parseTicketmasterResponse = (response) =>{
     try {
       link = e._embedded.attractions[0].externalLinks.homepage[0].url;
     } catch (error) {
-      console.log(error);
+      console.log('homepage not found');
       link = null;
     }
 
@@ -145,36 +153,6 @@ const parseTicketmasterResponse = (response) =>{
         }
       })
   })
-
-  // for(let e of arr){
-  //   let link;
-  //   try {
-  //     link = e._embedded.attractions[0].externalLinks.homepage[0].url;
-  //   } catch (error) {
-  //     console.log(error);
-  //     link = null;
-  //   }
-  //   // console.log(e.dates)
-  //   // console.log(e._embedded.attractions[0].externalLinks.homepage)
-
-  //   Event.findOne({eventId:e.id})
-  //     .then(event => {
-  //       return events.push({
-  //         name: e.name,
-  //         id: e.id,
-  //         dates:e.dates,
-  //         venue:e._embedded.venues[0],
-  //         largeImage: e.images[7].url,
-  //         smallImage: e.images[1].url,
-  //         ticketLink: e.url,
-  //         bandLink:link,
-  //         distance: e.distance,
-  //         comments: event.comments
-  //       });
-
-  //     })
-
-  // }
 
   return events;
   
@@ -198,10 +176,22 @@ const getEvents = (args) => {
     .then(response => parseTicketmasterResponse(response) );
 };
 
-const getByZip = (args) => {
-  return axios.get(
-    `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${args.zip}&thumbMaps=false`
-  )
+const getByZip = (args, request) => {
+  // console.log('passed: ', args, request.headers)
+  
+  const decodedToken = jwtDecode(request.headers.authorization.slice(7))
+  
+  return User.findOne({username:decodedToken.user.username})
+    .then( user => {
+      console.log('user zip is:', user.zip)
+      return   axios.get(
+        `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${user.zip}&thumbMaps=false`
+      )
+    })
+
+  // return axios.get(
+  //   `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${args.zip}&thumbMaps=false`
+  // )
     .then(res => {
       // console.log(res.data.results[0].locations[0].latLng);
       return res.data.results[0].locations[0].latLng;
@@ -224,12 +214,30 @@ const getByZip = (args) => {
  
 };
 
+const setComment = async (args, request) => {
+  const decodedToken = jwtDecode(request.headers.authorization.slice(7))
+  let username = decodedToken.user.username;
+
+  let user = await User.findOne({username: username});
+  console.log(user);
+	return Comment.create({user: user._id, body: args.body})
+					.then(comment => {
+						return Event.findOneAndUpdate(
+							{ eventId: args.eventId }, 
+							{ $push: {comments: comment._id }}
+						).populate('comments')
+					})
+					.then(event => event)
+}
+
 // The root provides the top-level API endpoints
 const resolvers = {
   getUser: (args) => getUser(args),
   getEvents: (args) => getEvents(args),
-  getByZip: (args) => getByZip(args),
-  getById: (args) => getById(args)
+  getByZip: (args, request) => getByZip(args, request),
+  getById: (args) => getById(args),
+  setComment: (args, request) => setComment(args, request)
+
 };
 
 var app = express();
@@ -253,7 +261,7 @@ app.get('/protected', jwtAuth, (req, res) => {
 });
 
 //insert jwtAuth middleware once we're further along
-app.use('/graphql', graphqlHTTP({
+app.use('/graphql', jwtAuth, graphqlHTTP({
   schema: schema,
   rootValue: resolvers,
   graphiql: true,
@@ -274,3 +282,5 @@ console.log('Running a GraphQL API server at localhost:4000/graphql');
 // 	//connect the database
 // 	console.log(`current listening on ${url}`);
 // });
+
+
