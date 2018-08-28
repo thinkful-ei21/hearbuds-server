@@ -32,8 +32,9 @@ const { dbConnect } = require('./db');
 const schema = buildSchema(`
 type User {
 	id: ID!
-	username: String!
-	email: String!
+	username: String
+	email: String
+  zip: String
 }
 
 type Event {
@@ -135,8 +136,9 @@ const parseTicketmasterResponse = (response) =>{
       link = null;
     }
 
-    return Event.findOne({eventId:e.id})
+    return Event.findOne({eventId:e.id}).populate({path: 'comments', populate: { path: 'user'}})
       .then(event => {
+        console.log(event)
         let comments = event? event.comments : null
 
         return {
@@ -184,7 +186,7 @@ const getByZip = (args, request) => {
   return User.findOne({username:decodedToken.user.username})
     .then( user => {
       console.log('user zip is:', user.zip)
-      return   axios.get(
+      return axios.get(
         `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${user.zip}&thumbMaps=false`
       )
     })
@@ -225,7 +227,7 @@ const setComment = async (args, request) => {
 						return Event.findOneAndUpdate(
 							{ eventId: args.eventId }, 
 							{ $push: {comments: comment._id }}
-						).populate('comments')
+						).populate({path: 'comments', populate: { path: 'user'}})
 					})
 					.then(event => event)
 }
