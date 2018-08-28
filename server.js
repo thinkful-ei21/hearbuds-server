@@ -239,7 +239,6 @@ const resolvers = {
   getByZip: (args, request) => getByZip(args, request),
   getById: (args) => getById(args),
   setComment: (args, request) => setComment(args, request)
-
 };
 
 var app = express();
