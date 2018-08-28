@@ -263,7 +263,7 @@ app.get('/protected', jwtAuth, (req, res) => {
 });
 
 //insert jwtAuth middleware once we're further along
-app.use('/graphql', graphqlHTTP({
+app.use('/graphql', jwtAuth, graphqlHTTP({
   schema: schema,
   rootValue: resolvers,
   graphiql: true,
