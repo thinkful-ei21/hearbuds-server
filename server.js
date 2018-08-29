@@ -135,7 +135,7 @@ const parseTicketmasterResponse = (response) =>{
       link = null;
     }
 
-    return Event.findOne({eventId:e.id})
+    return Event.findOne({eventId:e.id}).populate({path: 'comments', populate: { path: 'user'}})
       .then(event => {
         let comments = event? event.comments : null
 
@@ -176,18 +176,29 @@ const getEvents = (args) => {
     .then(response => parseTicketmasterResponse(response) );
 };
 
-const getByZip = (args, request) => {
+const getByZip = async (args, request) => {
   // console.log('passed: ', args, request.headers)
-  
-  const decodedToken = jwtDecode(request.headers.authorization.slice(7))
-  
-  return User.findOne({username:decodedToken.user.username})
-    .then( user => {
-      console.log('user zip is:', user.zip)
-      return   axios.get(
-        `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${user.zip}&thumbMaps=false`
+  let decodedToken = '', user = '';
+  console.log(request.headers.authorization)
+  if (request.headers.authorization) {
+    decodedToken = jwtDecode(request.headers.authorization.slice(7));
+
+    user = await User.findOne({username:decodedToken.user.username});
+  }
+
+  const zip = args.zip ? args.zip : user.zip;
+
+  return axios.get(
+        `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${zip}&thumbMaps=false`
       )
-    })
+  
+  // return User.findOne({username:decodedToken.user.username})
+  //   .then( user => {
+  //     console.log('user zip is:', user.zip)
+  //     return   axios.get(
+  //       `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${user.zip}&thumbMaps=false`
+  //     )
+  //   })
 
   // return axios.get(
   //   `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${args.zip}&thumbMaps=false`
@@ -225,7 +236,7 @@ const setComment = async (args, request) => {
 						return Event.findOneAndUpdate(
 							{ eventId: args.eventId }, 
 							{ $push: {comments: comment._id }}
-						).populate('comments')
+						).populate({path: 'comments', populate: { path: 'user'}})
 					})
 					.then(event => event)
 }
@@ -261,7 +272,7 @@ app.get('/protected', jwtAuth, (req, res) => {
 });
 
 //insert jwtAuth middleware once we're further along
-app.use('/graphql', jwtAuth, graphqlHTTP({
+app.use('/graphql', graphqlHTTP({
   schema: schema,
   rootValue: resolvers,
   graphiql: true,
