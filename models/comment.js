@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment');
 // this gives our model access to using promises. by default mongoose doesn't have promises
 mongoose.Promise = global.Promise;
 
@@ -15,6 +16,11 @@ const CommentSchema = mongoose.Schema({
 CommentSchema.virtual('id').get(function() {
 	return this._id.toHexString();
 });
+
+CommentSchema.virtual('time').get(function() {
+	let date = moment(this.createdAt);
+	return date.fromNow()
+})
 
 // ensure that every time we get a comment we are including the hexed, created id
 CommentSchema.set('toObject', {

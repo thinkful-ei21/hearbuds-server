@@ -58,8 +58,10 @@ type Event {
 }
 
 type Comment{
+  id: ID!
   body: String
   user: User
+  time: String
 }
 
 type Image {
