@@ -96,7 +96,7 @@ type Mutation {
 type Query {
   getUser(id: ID!): User
   getEvents: [Event]
-  getByZip(zip: Int): [Event]
+  getByZip(zip: Int, page: Int): [Event]
   getById(id: String): Event
 }
 `);
