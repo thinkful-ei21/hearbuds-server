@@ -30,7 +30,7 @@ const getUser = (args) => {
   
   
   const getByZip = async (args, request) => {
-    // console.log('passed: ', args, request.headers)
+    console.log('passed: ', args)
   
     let decodedToken = '', user = '';
     if (request.headers.authorization) {
@@ -39,7 +39,9 @@ const getUser = (args) => {
     }
   
     const zip = args.zip ? args.zip : user.zip;
-  
+    const page = args.page? args.page : 1
+    console.log('page is', page)
+
     return axios.get(
           `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${zip}&thumbMaps=false`
         )
@@ -48,7 +50,7 @@ const getUser = (args) => {
         return res.data.results[0].locations[0].latLng;
       })
       .then(loc =>{
-        return axios.get(`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}&latlong=${loc.lat},${loc.lng}&radius=50&countryCode=US`)
+        return axios.get(`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}&latlong=${loc.lat},${loc.lng}&radius=50&page=${page}&countryCode=US&sort=distance,asc`)
           .then(response => {
             return parseTicketmasterResponse(response);
           });
