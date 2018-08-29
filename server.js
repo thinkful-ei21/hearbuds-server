@@ -53,6 +53,7 @@ type Event {
 	_embedded: Venues
   dates: Date
   comments: [Comment]
+  attending: [User]
 }
 
 type Comment{
@@ -112,8 +113,11 @@ type Venue {
 }
 
 type Mutation {
-	setComment(body: String, userId: String, eventId: String): String
+  setComment(body: String, userId: String, eventId: String): String
+  setRSVP(attending: Boolean, eventID: String): String
 }
+
+
 
 type Query {
   getUser(id: ID!): User
@@ -136,8 +140,11 @@ const parseTicketmasterResponse = (response) =>{
     }
 
     return Event.findOne({eventId:e.id})
+      .populate('attending', 'name')
+      .populate('comments')
       .then(event => {
         let comments = event? event.comments : null
+        let attending = event? event.attending : null
 
         return {
           name: e.name,
@@ -149,7 +156,8 @@ const parseTicketmasterResponse = (response) =>{
           ticketLink: e.url,
           bandLink:link,
           distance: e.distance,
-          comments: comments
+          comments: comments,
+          attending: attending
         }
       })
   })
@@ -177,13 +185,13 @@ const getEvents = (args) => {
 };
 
 const getByZip = (args, request) => {
-  // console.log('passed: ', args, request.headers)
+  console.log('passed: ', args, request.headers)
   
   const decodedToken = jwtDecode(request.headers.authorization.slice(7))
   
   return User.findOne({username:decodedToken.user.username})
     .then( user => {
-      console.log('user zip is:', user.zip)
+      // console.log('user zip is:', user.zip)
       return   axios.get(
         `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${user.zip}&thumbMaps=false`
       )
@@ -230,13 +238,57 @@ const setComment = async (args, request) => {
 					.then(event => event)
 }
 
+const setRSVP = async (args, request) => {
+
+  // console.log(args, request.headers)
+  if(request.headers.authenticate === null){
+    return new Error('unauthorized mutation')
+  }
+  
+  const decodedToken = jwtDecode(request.headers.authorization.slice(7))
+  let username = decodedToken.user.username;
+
+  let event = await Event.findOne({eventId: args.eventID})
+    .populate({path: 'attending', populate: { path: 'user', select: 'username'}})
+  
+ 
+  if(event){
+    let attending = event.attending.map(u => u.username)
+
+
+    if(attending.includes(username) && !args.attending){
+
+      let user = await User.findOne({username: username})
+      return Event.findOneAndUpdate({eventId: args.eventID}, {$pull: {attending: user._id}}, {new:true})
+    }
+    else if(!attending.includes(username) && args.attending){
+      let user = await User.findOne({username: username})
+      return Event.findOneAndUpdate({eventId: args.eventID}, {$push: {attending: user}}, {new:true})
+    }
+    else{
+      return Event.findOne({eventId: args.eventID})
+    }
+  }
+  else if(args.attending){
+    
+    let user = await User.findOne({username: username})
+    return Event.findOneAndUpdate({eventId: args.eventID}, {$push: {attending: user}}, {new: true, upsert:true})
+  }
+  else{
+    return Event.findOne({eventId: args.eventID})
+  }
+
+
+}
+
 // The root provides the top-level API endpoints
 const resolvers = {
   getUser: (args) => getUser(args),
   getEvents: (args) => getEvents(args),
   getByZip: (args, request) => getByZip(args, request),
   getById: (args) => getById(args),
-  setComment: (args, request) => setComment(args, request)
+  setComment: (args, request) => setComment(args, request),
+  setRSVP: (args, request) => setRSVP(args, request)
 
 };
 
@@ -260,8 +312,21 @@ app.get('/protected', jwtAuth, (req, res) => {
   });
 });
 
+
+
+app.use('/', function(req, res, next) {
+  passport.authenticate('jwt', function(err, user, info) {
+    console.log('user', user, info, req.headers)
+    if (err) { return next(err); }
+    if (!user) { req.headers.authorization = null;
+                  return next() }
+    return next()
+  })(req, res, next);
+});
+
+
 //insert jwtAuth middleware once we're further along
-app.use('/graphql', jwtAuth, graphqlHTTP({
+app.use('/graphql', graphqlHTTP({
   schema: schema,
   rootValue: resolvers,
   graphiql: true,
