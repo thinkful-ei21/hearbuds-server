@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const jwtDecode = require('jwt-decode');
 
-const {User} = require('../models/user');
+const User = require('../models/user');
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.use('/edit', passport.authenticate('jwt', {session:false, failWithError: 
 // Post to register a new user
 router.post('/', jsonParser, (req, res) => {
 
-  console.log('post user');
+  console.log('post user', User);
   
   const requiredFields = ['username', 'password', 'zip', 'email'];
   const missingField = requiredFields.find(field => !(field in req.body));
