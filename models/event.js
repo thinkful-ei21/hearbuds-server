@@ -25,7 +25,7 @@ EventSchema.set('toObject', {
 
 //adding a static method which looks for an event. if one is found it returns it otherwise it will just create a new one
 EventSchema.static('findOneOrCreate', async function findOneOrCreate(condition, doc) {
-	const data = await this.findOne(condition);
+	const data = await this.findOne(condition).populate({path: 'comments', populate: { path: 'user'}});
 	return data || this.create(doc);
 });
 
