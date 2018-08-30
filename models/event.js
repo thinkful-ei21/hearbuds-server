@@ -7,6 +7,9 @@ mongoose.Promise = global.Promise;
 const EventSchema = mongoose.Schema({
 	eventId: { type: String, required: true, unique: true },
 	attending: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+	popularity: {type: Number, required: true, default: 0},
+	thumbnail: {type: String, required: true},
+	name: {type: String, required: true},
 	considering: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 	comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}]
 }, {
@@ -17,6 +20,7 @@ const EventSchema = mongoose.Schema({
 EventSchema.virtual('id').get(function() {
 	return this._id.toHexString();
 });
+
 
 // every time we query an event we are returning the object
 EventSchema.set('toObject', {
