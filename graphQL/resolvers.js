@@ -16,8 +16,8 @@ const getUser = (args) => {
   };
   
   const getById = async (args) => {
-      let event = await Event.findOneOrCreate({eventId: args.id}, {eventId: args.id});
-  
+
+      // let event = await Event.findOneOrCreate({eventId: args.id}, {eventId: args.id});
     return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=1&id=${args.id}&apikey=${TICKETMASTER_API_KEY}`)
       .then(response =>parseTicketmasterResponse(response)[0] );
   
@@ -67,26 +67,42 @@ const getUser = (args) => {
   const setComment = async (args, request) => {
     const decodedToken = jwtDecode(request.headers.authorization.slice(7))
     let username = decodedToken.user.username;
-  
+
+
     let user = await User.findOne({username: username});
-    return Comment.create({user: user._id, body: args.body})
-            .then(comment => {
-                  return Event.findOneAndUpdate(
-                      { eventId: args.eventId }, 
-                      { $push: {comments: comment._id }}
-                      ).populate({path: 'comments', populate: { path: 'user'}})
-                      })
-                      .then(event => event)
+
+    let event = await Event.findOne({ eventId: args.eventId })
+
+    let comment = await Comment.create({user: user._id, body: args.body})
+
+    if (event)  {
+      return Event.findOneAndUpdate(
+        { eventId: args.eventId }, 
+        { $push: {comments: comment._id }}  )
+        .populate({path: 'comments', populate: { path: 'user'}})
+    }
+    else {
+      event = await getById({id: args.eventID}).then(e => {return parseTicketmasterResponse([e])[0]})
+
+      return Event.create({
+        eventId: event.id,
+        comments: [comment._id],
+        thumbnail: event.smallImage,
+        name: event.name
+      })
+
+    }
   }
-  
+
   const setRSVP = async (args, request) => {
   
     if(request.headers.authenticate === null){
       return new Error('unauthorized mutation')
     }
     
-    const decodedToken = jwtDecode(request.headers.authorization.slice(7))
-    let username = decodedToken.user.username;
+    let username = 'bobuser'
+    // const decodedToken = jwtDecode(request.headers.authorization.slice(7))
+    // let username = decodedToken.user.username;
   
     let event = await Event.findOne({eventId: args.eventID})
       .populate({path: 'attending', populate: { path: 'user', select: 'username'}})
@@ -97,11 +113,13 @@ const getUser = (args) => {
      
       if(attending.includes(username) && !args.attending){
         let user = await User.findOne({username: username})
-        return Event.findOneAndUpdate({eventId: args.eventID}, {$pull: {attending: user._id}}, {new:true})
+        return Event.findOneAndUpdate(
+          {eventId: args.eventID}, {$pull: {attending: user._id}, $inc: {popularity: -1}}, {new:true})
       }
       else if(!attending.includes(username) && args.attending){
         let user = await User.findOne({username: username})
-        return Event.findOneAndUpdate({eventId: args.eventID}, {$push: {attending: user}}, {new:true})
+        return Event.findOneAndUpdate(
+          {eventId: args.eventID}, {$push: {attending: user}, $inc: {popularity: 1}}, {new:true})
       }
       else{
         return Event.findOne({eventId: args.eventID})
@@ -109,7 +127,35 @@ const getUser = (args) => {
     }
     else if(args.attending){
       let user = await User.findOne({username: username})
-      return Event.findOneAndUpdate({eventId: args.eventID}, {$push: {attending: user}}, {new: true, upsert:true})
+
+      // return getById({ id: args.eventID})
+      //   .then(e=> {
+      //     console.log('here?',e)
+      //     return parseTicketmasterResponse([e])[0]
+      //   })
+      //   .then(event =>{
+      //     return Event.create({
+      //       eventId: event.id,
+      //       attending: [user],
+      //       popularity: 1,
+      //       thumbnail: event.smallImage,
+      //       name: event.name
+      //     })
+      //   })
+      
+      let event = await getById({id: args.eventID}).then(e => {
+        // console.log('here?',e)
+        return parseTicketmasterResponse([e])[0]})
+      console.log('event:',event)
+      return Event.create({
+        eventId: event.id,
+        attending: [user],
+        popularity: 1,
+        thumbnail: event.smallImage,
+        name: event.name
+      })
+
+      // return Event.findOneAndUpdate({eventId: args.eventID}, {$push: {attending: user}}, {new: true, upsert:true})
     }
     else{
       return Event.findOne({eventId: args.eventID})
@@ -117,11 +163,20 @@ const getUser = (args) => {
   
   }
   
+  const getByPop = async (args, request) => {
+
+    let events = await Event.find({}, null, {sort: {popularity: 'desc'}, limit: 20})
+    // console.log('events:',events)
+    return events
+  };
+
+
   // The root provides the top-level API endpoints
   const resolvers = {
     getUser: (args) => getUser(args),
     getEvents: (args) => getEvents(args),
     getByZip: (args, request) => getByZip(args, request),
+    getByPop: (args, request) => getByPop(args, request),
     getById: (args) => getById(args),
     setComment: (args, request) => setComment(args, request),
     setRSVP: (args, request) => setRSVP(args, request)

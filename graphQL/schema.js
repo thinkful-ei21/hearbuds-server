@@ -15,7 +15,6 @@ type Event {
 	type: String
   id: String
   venue: Venue
-  largeImage: String
   smallImage: String
   ticketLink: String
   bandLink: String
@@ -27,7 +26,8 @@ type Event {
 	_embedded: Venues
   dates: Date
   comments: [Comment]
-  attending: [User]
+	attending: [User]
+	popularity: Int
 }
 
 type Comment{
@@ -98,7 +98,8 @@ type Mutation {
 type Query {
   getUser(id: ID!): User
   getEvents: [Event]
-  getByZip(zip: Int, page: Int): [Event]
+	getByZip(zip: Int, page: Int): [Event]
+	getByPop: [Event]
   getById(id: String): Event
 }
 `);
