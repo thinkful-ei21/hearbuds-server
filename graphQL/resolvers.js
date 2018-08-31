@@ -86,7 +86,8 @@ const getUser = (args) => {
     let event = await Event.findOne({ eventId: args.eventId })
 
     let comment = await Comment.create({user: user._id, body: args.body})
-
+    console.log(comment);
+    console.log(event);
     if (event)  {
       return Event.findOneAndUpdate(
         { eventId: args.eventId }, 
@@ -94,8 +95,8 @@ const getUser = (args) => {
         .populate({path: 'comments', populate: { path: 'user'}})
     }
     else {
-      event = await getById({id: args.eventID}).then(e => {return parseTicketmasterResponse([e])[0]})
-
+      event = await getById({id: args.eventId}).then(e => {return parseTicketmasterResponse([e])[0]})
+      console.log(event)
       return Event.create({
         eventId: event.id,
         comments: [comment._id],
