@@ -42,7 +42,7 @@ const getUser = (args) => {
     const page = args.page? args.page : 1;
     const after = args.after? args.after : `${moment().format()}`;
     const before = args.before? args.after : `${moment().add(7, 'days').format()}`;
-    const radius = args.radius? args.radius : 50
+    const radius = args.radius? args.radius : 250
 
     return axios.get(
           `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${zip}&thumbMaps=false`
@@ -59,6 +59,11 @@ const getUser = (args) => {
           `&page=${page}&countryCode=US&sort=distance,asc`
       )
           .then(response => {
+            console.log("query is: ",`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}`+
+            `&startDateTime=${after}&endDateTime=${before}`+
+            `&latlong=${loc.lat},${loc.lng}&radius=${radius}`+
+            `&segmentName=Music`+
+            `&page=${page}&countryCode=US&sort=distance,asc`)
             return parseTicketmasterResponse(response);
           });
         //response includes next/prev links for pagination

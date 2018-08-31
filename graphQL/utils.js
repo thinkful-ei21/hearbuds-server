@@ -4,11 +4,14 @@ const Event = require('../models/event');
 
 const parseTicketmasterResponse = (response) =>{
   let arr;
+
   if(response.data){
    arr = response.data._embedded.events;
+   console.log("response.data", arr)
   }
   else{
     arr = response
+    console.log("no response.data", arr)
   }
   
 
