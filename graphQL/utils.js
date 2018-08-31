@@ -10,6 +10,7 @@ const parseTicketmasterResponse = (response) =>{
   else{
     arr = response
   }
+  
 
   let events =  arr.map( async (e) =>{
     let link;
@@ -20,11 +21,9 @@ const parseTicketmasterResponse = (response) =>{
       link = null;
     }
   
-    console.log(arr)
-  
     return Event.findOne({eventId:e.id}).populate({path: 'comments', populate: { path: 'user'}})
       .then(event => {
-        // console.log(event);
+
         let comments = event? event.comments : null;
         let attending = event? event.attending : null;
   
@@ -42,7 +41,7 @@ const parseTicketmasterResponse = (response) =>{
         };
       });
   });
-  console.log('events:', events)
+
   return events;
     
 };

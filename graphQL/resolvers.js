@@ -7,6 +7,7 @@ const Event = require('../models/event');
 const User = require('../models/user');
 const Comment = require('../models/comment');
 const jwtDecode = require('jwt-decode');
+const moment = require('moment');
 
 const { TICKETMASTER_BASE_URL, TICKETMASTER_API_KEY, MAPQUEST_BASE_URL, MAPQUEST_API_KEY} = require('../config');
 
@@ -30,7 +31,6 @@ const getUser = (args) => {
   
   
   const getByZip = async (args, request) => {
-    console.log('passed: ', args)
   
     let decodedToken = '', user = '';
     if (request.headers.authorization) {
@@ -39,8 +39,10 @@ const getUser = (args) => {
     }
   
     const zip = args.zip ? args.zip : user.zip;
-    const page = args.page? args.page : 1
-    console.log('page is', page)
+    const page = args.page? args.page : 1;
+    const after = args.after? args.after : `${moment().format()}`;
+    const before = args.before? args.after : `${moment().add(7, 'days').format()}`;
+    const radius = args.radius? args.radius : 50
 
     return axios.get(
           `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${zip}&thumbMaps=false`
@@ -50,7 +52,12 @@ const getUser = (args) => {
         return res.data.results[0].locations[0].latLng;
       })
       .then(loc =>{
-        return axios.get(`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}&latlong=${loc.lat},${loc.lng}&radius=50&page=${page}&countryCode=US&sort=distance,asc`)
+        return axios.get(`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}`+
+          `&startDateTime=${after}&endDateTime=${before}`+
+          `&latlong=${loc.lat},${loc.lng}&radius=${radius}`+
+          `&segmentName=Music`+
+          `&page=${page}&countryCode=US&sort=distance,asc`
+      )
           .then(response => {
             return parseTicketmasterResponse(response);
           });
@@ -100,9 +107,8 @@ const getUser = (args) => {
       return new Error('unauthorized mutation')
     }
     
-    let username = 'bobuser'
-    // const decodedToken = jwtDecode(request.headers.authorization.slice(7))
-    // let username = decodedToken.user.username;
+    const decodedToken = jwtDecode(request.headers.authorization.slice(7))
+    let username = decodedToken.user.username;
   
     let event = await Event.findOne({eventId: args.eventID})
       .populate({path: 'attending', populate: { path: 'user', select: 'username'}})
@@ -128,25 +134,11 @@ const getUser = (args) => {
     else if(args.attending){
       let user = await User.findOne({username: username})
 
-      // return getById({ id: args.eventID})
-      //   .then(e=> {
-      //     console.log('here?',e)
-      //     return parseTicketmasterResponse([e])[0]
-      //   })
-      //   .then(event =>{
-      //     return Event.create({
-      //       eventId: event.id,
-      //       attending: [user],
-      //       popularity: 1,
-      //       thumbnail: event.smallImage,
-      //       name: event.name
-      //     })
-      //   })
       
       let event = await getById({id: args.eventID}).then(e => {
-        // console.log('here?',e)
+    
         return parseTicketmasterResponse([e])[0]})
-      console.log('event:',event)
+      // console.log('event:',event)
       return Event.create({
         eventId: event.id,
         attending: [user],
@@ -155,7 +147,6 @@ const getUser = (args) => {
         name: event.name
       })
 
-      // return Event.findOneAndUpdate({eventId: args.eventID}, {$push: {attending: user}}, {new: true, upsert:true})
     }
     else{
       return Event.findOne({eventId: args.eventID})
@@ -166,7 +157,6 @@ const getUser = (args) => {
   const getByPop = async (args, request) => {
 
     let events = await Event.find({}, null, {sort: {popularity: 'desc'}, limit: 20})
-    // console.log('events:',events)
     return events
   };
 
