@@ -1,0 +1,67 @@
+[debug] [2018-09-04T19:12:23.743Z] ----------------------------------------------------------------------
+[debug] [2018-09-04T19:12:23.745Z] Command:       /usr/local/bin/node /usr/local/bin/firebase serve --only functions
+[debug] [2018-09-04T19:12:23.745Z] CLI Version:   4.2.1
+[debug] [2018-09-04T19:12:23.745Z] Platform:      darwin
+[debug] [2018-09-04T19:12:23.746Z] Node Version:  v10.0.0
+[debug] [2018-09-04T19:12:23.747Z] Time:          Tue Sep 04 2018 12:12:23 GMT-0700 (PDT)
+[debug] [2018-09-04T19:12:23.748Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-09-04T19:12:23.761Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-09-04T19:12:23.761Z] > authorizing via signed-in user
+[debug] [2018-09-04T19:12:23.763Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2018-09-04T19:12:23.763Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+
+[debug] [2018-09-04T19:12:23.962Z] <<< HTTP RESPONSE 200
+[debug] [2018-09-04T19:12:23.974Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/projects/heardbuds  
+ 
+[debug] [2018-09-04T19:12:24.494Z] <<< HTTP RESPONSE 200
+[debug] [2018-09-04T19:12:24.496Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/heardbuds  
+ 
+[debug] [2018-09-04T19:12:24.880Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/Users/angelo/code/thinkful/hearbud/server'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-09-04T19:12:25.632Z] Fetching environment
+[debug] [2018-09-04T19:12:25.789Z] Error: EACCES: permission denied, open '/Users/angelo/.config/gcloud/application_default_credentials.json'
+    at Object.fs.openSync (fs.js:545:3)
+    at Object.fs.writeFileSync (fs.js:1275:33)
+    at module.exports (/usr/local/lib/node_modules/firebase-tools/lib/ensureDefaultCredentials.js:44:6)
+    at FunctionsEmulator.start (/usr/local/lib/node_modules/firebase-tools/lib/functionsEmulator.js:118:3)
+    at Object.start (/usr/local/lib/node_modules/firebase-tools/lib/serve/functions.js:9:29)
+    at /usr/local/lib/node_modules/firebase-tools/lib/serve/index.js:17:21
+    at arrayMap (/usr/local/lib/node_modules/firebase-tools/node_modules/lodash/lodash.js:639:23)
+    at Function.map (/usr/local/lib/node_modules/firebase-tools/node_modules/lodash/lodash.js:9554:14)
+    at _serve (/usr/local/lib/node_modules/firebase-tools/lib/serve/index.js:15:7)
+    at Command._action (/usr/local/lib/node_modules/firebase-tools/commands/serve.js:48:12)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2018-09-04T20:14:14.149Z] ----------------------------------------------------------------------
+[debug] [2018-09-04T20:14:14.151Z] Command:       /usr/local/bin/node /usr/local/bin/firebase functions:shell
+[debug] [2018-09-04T20:14:14.151Z] CLI Version:   4.2.1
+[debug] [2018-09-04T20:14:14.151Z] Platform:      darwin
+[debug] [2018-09-04T20:14:14.151Z] Node Version:  v10.0.0
+[debug] [2018-09-04T20:14:14.152Z] Time:          Tue Sep 04 2018 13:14:14 GMT-0700 (PDT)
+[debug] [2018-09-04T20:14:14.152Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-09-04T20:14:14.165Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-09-04T20:14:14.166Z] > authorizing via signed-in user
+[debug] [2018-09-04T20:14:14.168Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2018-09-04T20:14:14.168Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+
+[debug] [2018-09-04T20:14:14.385Z] <<< HTTP RESPONSE 200
+[debug] [2018-09-04T20:14:14.395Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/projects/heardbuds  
+ 
+[debug] [2018-09-04T20:14:15.874Z] <<< HTTP RESPONSE 200
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-09-04T20:14:16.713Z] Fetching environment
+[debug] [2018-09-04T20:14:16.867Z] Error: EACCES: permission denied, open '/Users/angelo/.config/gcloud/application_default_credentials.json'
+    at Object.fs.openSync (fs.js:545:3)
+    at Object.fs.writeFileSync (fs.js:1275:33)
+    at module.exports (/usr/local/lib/node_modules/firebase-tools/lib/ensureDefaultCredentials.js:44:6)
+    at FunctionsEmulator.start (/usr/local/lib/node_modules/firebase-tools/lib/functionsEmulator.js:118:3)
+    at Command.module.exports [as _action] (/usr/local/lib/node_modules/firebase-tools/lib/functionsShellCommandAction.js:18:6)
+    at /usr/local/lib/node_modules/firebase-tools/lib/command.js:202:29
+    at process._tickCallback (internal/process/next_tick.js:178:7)
+[error] 
+[error] Error: An unexpected error has occurred.

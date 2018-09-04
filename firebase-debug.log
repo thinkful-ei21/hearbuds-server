@@ -1,0 +1,36 @@
+[debug] [2018-09-04T19:53:45.412Z] ----------------------------------------------------------------------
+[debug] [2018-09-04T19:53:45.414Z] Command:       /usr/local/bin/node /usr/local/bin/firebase serve --only functions,hosting
+[debug] [2018-09-04T19:53:45.414Z] CLI Version:   4.2.1
+[debug] [2018-09-04T19:53:45.415Z] Platform:      darwin
+[debug] [2018-09-04T19:53:45.415Z] Node Version:  v10.0.0
+[debug] [2018-09-04T19:53:45.415Z] Time:          Tue Sep 04 2018 12:53:45 GMT-0700 (PDT)
+[debug] [2018-09-04T19:53:45.415Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-09-04T19:53:45.428Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-09-04T19:53:45.429Z] > authorizing via signed-in user
+[debug] [2018-09-04T19:53:45.430Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/projects/heardbuds  
+ 
+[debug] [2018-09-04T19:53:45.938Z] <<< HTTP RESPONSE 200
+[debug] [2018-09-04T19:53:45.940Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/heardbuds  
+ 
+[debug] [2018-09-04T19:53:46.364Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/Users/angelo/code/thinkful/hearbud/server'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-09-04T19:53:47.225Z] Fetching environment
+[debug] [2018-09-04T19:53:47.228Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/818067542492:getServerAppConfig  
+ 
+[debug] [2018-09-04T19:53:47.228Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/818067542492/clients/_:getWebAppConfig  
+ 
+[debug] [2018-09-04T19:53:47.488Z] <<< HTTP RESPONSE 200
+[debug] [2018-09-04T19:53:47.488Z] Starting @google-cloud/functions-emulator
+[debug] [2018-09-04T19:53:47.515Z] <<< HTTP RESPONSE 200
+[info] i  hosting[heardbuds]: Serving hosting files from: public
+[info] ✔  hosting[heardbuds]: Local server: http://localhost:5000
+[debug] [2018-09-04T19:53:49.052Z] Parsing function triggers
+[info] ✔  functions: app: http://localhost:5001/heardbuds/us-central1/app
+[info] [hosting] Rewriting /graphql to local function app
+[info] [hosting] Rewriting /graphql? to local function app
+[info] [hosting] Rewriting /favicon.ico to local function app
+[info] [hosting] Rewriting /graphql? to local function app
