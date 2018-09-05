@@ -70,7 +70,7 @@ const getUser = (args) => {
       
       })
       .catch(err=>{
-        console.log(err);
+        console.log(err.message);
         return new Error('API response error');
       });
    
