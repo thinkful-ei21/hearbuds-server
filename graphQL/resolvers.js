@@ -43,30 +43,38 @@ const getUser = (args) => {
     const after = args.after? args.after : `${moment().format()}`;
     const before = args.before? args.after : `${moment().add(7, 'days').format()}`;
     const radius = args.radius? args.radius : 250
-
+    const searchTerm = args.searchTerm? args.searchTerm.replace(" ", "%20") : ''
+    
+    
     return axios.get(
           `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${zip}&thumbMaps=false`
         )
     
       .then(res => {
+        
         return res.data.results[0].locations[0].latLng;
+        
       })
       .then(loc =>{
+        console.log('sanity please')
+        const locQuery = !args.zip && args.city ? `&city=${args.city}` : `&latlong=${loc.lat},${loc.lng}&radius=${radius}`
+
         return axios.get(`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}`+
           `&startDateTime=${after}&endDateTime=${before}`+
-          `&latlong=${loc.lat},${loc.lng}&radius=${radius}`+
+          locQuery +
           `&segmentName=Music`+
+          `&keyword=${searchTerm}` +
           `&page=${page}&countryCode=US&sort=distance,asc`
       )
           .then(response => {
             console.log("query is: ",`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}`+
-            `&startDateTime=${after}&endDateTime=${before}`+
-            `&latlong=${loc.lat},${loc.lng}&radius=${radius}`+
-            `&segmentName=Music`+
-            `&page=${page}&countryCode=US&sort=distance,asc`)
+          `&startDateTime=${after}&endDateTime=${before}`+
+          locQuery +
+          `&segmentName=Music`+
+          `&keyword=${searchTerm}` +
+          `&page=${page}&countryCode=US&sort=distance,asc`)
             return parseTicketmasterResponse(response);
           });
-        //response includes next/prev links for pagination
       
       })
       .catch(err=>{
@@ -86,8 +94,7 @@ const getUser = (args) => {
     let event = await Event.findOne({ eventId: args.eventId })
 
     let comment = await Comment.create({user: user._id, body: args.body})
-    console.log(comment);
-    console.log(event);
+    
     if (event)  {
       return Event.findOneAndUpdate(
         { eventId: args.eventId }, 
@@ -127,11 +134,13 @@ const getUser = (args) => {
         let user = await User.findOne({username: username})
         return Event.findOneAndUpdate(
           {eventId: args.eventID}, {$pull: {attending: user._id}, $inc: {popularity: -1}}, {new:true})
+          .populate({path: 'attending', populate: { path: 'user', select: 'username'}})
       }
       else if(!attending.includes(username) && args.attending){
         let user = await User.findOne({username: username})
         return Event.findOneAndUpdate(
           {eventId: args.eventID}, {$push: {attending: user}, $inc: {popularity: 1}}, {new:true})
+          .populate({path: 'attending', populate: { path: 'user', select: 'username'}})
       }
       else{
         return Event.findOne({eventId: args.eventID})
