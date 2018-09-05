@@ -134,11 +134,13 @@ const getUser = (args) => {
         let user = await User.findOne({username: username})
         return Event.findOneAndUpdate(
           {eventId: args.eventID}, {$pull: {attending: user._id}, $inc: {popularity: -1}}, {new:true})
+          .populate({path: 'attending', populate: { path: 'user', select: 'username'}})
       }
       else if(!attending.includes(username) && args.attending){
         let user = await User.findOne({username: username})
         return Event.findOneAndUpdate(
           {eventId: args.eventID}, {$push: {attending: user}, $inc: {popularity: 1}}, {new:true})
+          .populate({path: 'attending', populate: { path: 'user', select: 'username'}})
       }
       else{
         return Event.findOne({eventId: args.eventID})
