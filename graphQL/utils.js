@@ -12,11 +12,11 @@ const parseTicketmasterResponse = (response) =>{
       return []
     }
    arr = response.data._embedded.events;
-   console.log("response.data", arr)
+  //  console.log("response.data", arr)
   }
   else{
     arr = response
-    console.log("no response.data", arr)
+    // console.log("no response.data", arr)
   }
   
 

@@ -16,7 +16,7 @@ const getUser = (args) => {
     return 'user';
   };
   
-  const getById = async (args) => {
+const getById = async (args) => {
 
       // let event = await Event.findOneOrCreate({eventId: args.id}, {eventId: args.id});
     let tmEvent = await axios.get(`${TICKETMASTER_BASE_URL}events.json?size=1&id=${args.id}&apikey=${TICKETMASTER_API_KEY}`)
@@ -24,21 +24,21 @@ const getUser = (args) => {
     let dbEvent = await await Event.findOne({ eventId: args.id })
       .populate({path: 'comments', populate: { path: 'Comment'}})
       .populate({path: 'attending', populate: { path: 'user'}})
-
-    tmEvent.attending = dbEvent.attending
-    tmEvent.comments = dbEvent.comments
+    
+    tmEvent['attending'] = dbEvent? dbEvent.attending : []
+    tmEvent['comments'] = dbEvent? dbEvent.comments : []
 
     return tmEvent
   
-  };
+};
   
-  const getEvents = (args) => {
+const getEvents = (args) => {
     return axios.get(`${TICKETMASTER_BASE_URL}events.json?size=10&apikey=${TICKETMASTER_API_KEY}`)
       .then(response => parseTicketmasterResponse(response) );
-  };
+};
   
   
-  const getByZip = async (args, request) => {
+const getByZip = async (args, request) => {
   
     let decodedToken = '', user = '';
     if (request.headers.authorization) {
@@ -92,9 +92,9 @@ const getUser = (args) => {
         return new Error('API response error');
       });
    
-  };
+};
   
-  const setComment = async (args, request) => {
+const setComment = async (args, request) => {
     const decodedToken = jwtDecode(request.headers.authorization.slice(7))
     let username = decodedToken.user.username;
 
@@ -122,9 +122,9 @@ const getUser = (args) => {
       })
 
     }
-  }
+}
 
-  const setRSVP = async (args, request) => {
+const setRSVP = async (args, request) => {
   
     if(request.headers.authenticate === null){
       return new Error('unauthorized mutation')
@@ -197,4 +197,4 @@ const getUser = (args) => {
     setRSVP: (args, request) => setRSVP(args, request)
   };
 
-  module.exports = resolvers;
+module.exports = resolvers;
