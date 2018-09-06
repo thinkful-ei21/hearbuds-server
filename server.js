@@ -21,8 +21,8 @@ app.use(morgan('common'));
 passport.use(localStrategy);
 passport.use(jwtStrategy);
 
-app.use('/users/', userRouter);
-app.use('/auth/', authRouter);
+app.use('/users', userRouter);
+app.use('/auth', authRouter);
 
 app.use('/', function(req, res, next) {
   passport.authenticate('jwt', function(err, user, info) {

@@ -38,14 +38,16 @@ const getUser = (args) => {
       user = await User.findOne({username:decodedToken.user.username});
     }
   
+  //https://app.ticketmaster.com/discovery/v2/events.json?apikey=GK2zuqLGcMeChWPZii0o9pjB0eS6zVd2&startDateTime=2018-09-05T17:25:25+00:00Z&endDateTime=2018-09-12T17:25:25+00:00Z&latlong=34.063591,-118.437175&radius=250&segmentName=Music&page=1&countryCode=US&sort=distance,asc
+
     const zip = args.zip ? args.zip : user.zip;
     const page = args.page? args.page : 1;
-    const after = args.after? args.after : `${moment().format()}`;
-    const before = args.before? args.after : `${moment().add(7, 'days').format()}`;
-    const radius = args.radius? args.radius : 250
+
+    const after = args.after? args.after : `${moment().format('YYYY-MM-DDTHH:mm:ss')}`;
+    const before = args.before? args.after : `${moment().add(7, 'days').format('YYYY-MM-DDTHH:mm:ss')}`;
+    const radius = args.radius ? args.radius : 250
     const searchTerm = args.searchTerm? args.searchTerm.replace(" ", "%20") : ''
-    
-    
+     
     return axios.get(
           `${MAPQUEST_BASE_URL}address?key=${MAPQUEST_API_KEY}&inFormat=kvp&outFormat=json&location=${zip}&thumbMaps=false`
         )
@@ -60,7 +62,7 @@ const getUser = (args) => {
         const locQuery = !args.zip && args.city ? `&city=${args.city}` : `&latlong=${loc.lat},${loc.lng}&radius=${radius}`
 
         return axios.get(`${TICKETMASTER_BASE_URL}events.json?apikey=${TICKETMASTER_API_KEY}`+
-          `&startDateTime=${after}&endDateTime=${before}`+
+          `&startDateTime=${after}z&endDateTime=${before}z`+
           locQuery +
           `&segmentName=Music`+
           `&keyword=${searchTerm}` +
