@@ -5,7 +5,12 @@ const Event = require('../models/event');
 const parseTicketmasterResponse = (response) =>{
   let arr;
 
+  // console.log(response.data)
+
   if(response.data){
+    if(response.data.page.totalElements === 0){
+      return []
+    }
    arr = response.data._embedded.events;
    console.log("response.data", arr)
   }
