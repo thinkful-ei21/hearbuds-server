@@ -21,7 +21,7 @@ const getById = async (args) => {
       // let event = await Event.findOneOrCreate({eventId: args.id}, {eventId: args.id});
     let tmEvent = await axios.get(`${TICKETMASTER_BASE_URL}events.json?size=1&id=${args.id}&apikey=${TICKETMASTER_API_KEY}`)
       .then(response =>parseTicketmasterResponse(response)[0] );
-    let dbEvent = await await Event.findOne({ eventId: args.id })
+    let dbEvent = await Event.findOne({ eventId: args.id })
       .populate({path: 'comments', populate: { path: 'Comment'}})
       .populate({path: 'attending', populate: { path: 'user'}})
     
