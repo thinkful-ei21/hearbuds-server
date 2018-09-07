@@ -22,11 +22,14 @@ const getById = async (args) => {
     let tmEvent = await axios.get(`${TICKETMASTER_BASE_URL}events.json?size=1&id=${args.id}&apikey=${TICKETMASTER_API_KEY}`)
       .then(response =>parseTicketmasterResponse(response)[0] );
     let dbEvent = await Event.findOne({ eventId: args.id })
-      .populate({path: 'comments', populate: { path: 'Comment'}})
+      .populate({path: 'comments', populate: { path: 'user'}})
       .populate({path: 'attending', populate: { path: 'user'}})
     
+
     tmEvent['attending'] = dbEvent? dbEvent.attending : []
     tmEvent['comments'] = dbEvent? dbEvent.comments : []
+
+    console.log(tmEvent.comments)
 
     return tmEvent
   
