@@ -6,8 +6,8 @@ HearBuds allows users to find concerts in their area and find someone to go with
 
 _____________________
 ## Link to the live version
- -[live app](https://hearbuds-client.firebaseapp.com/)
- -[client repo](https://github.com/thinkful-ei21/hearbuds-client)
+ * [live app](https://hearbuds-client.firebaseapp.com/)
+ * [client repo](https://github.com/thinkful-ei21/hearbuds-client)
 
  ____________________
  ## Screenshots
